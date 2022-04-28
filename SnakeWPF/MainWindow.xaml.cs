@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Speech.Synthesis;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,40 +16,69 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml.Serialization;
+using Ellipse = System.Windows.Shapes.Ellipse;
+using Rectangle = System.Windows.Shapes.Rectangle;
 
 namespace SnakeWPF
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public enum SnakeDirection
         { Left, Right, Up, Down };
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private Random random = new();
         private DispatcherTimer gameTickTimer = new();
+        private SpeechSynthesizer speechSynthesizer = new();
 
         private const int SnakeSquareSize = 20;
         private const int SnakeStartLength = 3;
         private const int SnakeStartSpeed = 400;
         private const int SnakeSpeedThreshold = 100;
+        private const int MaxHighScoreListEntryCount = 5;
 
         private SolidColorBrush snakeBodyBrush = Brushes.Green;
         private SolidColorBrush snakeHeadBrush = Brushes.YellowGreen;
+        private SolidColorBrush foodBrush = Brushes.Red;
+
         private List<SnakePart> snakeParts = new();
         private SnakeDirection snakeDirection = SnakeDirection.Right;
         private int snakeLength;
+        private int currentScore;
+
+        public int CurrentScore
+        {
+            get { return this.currentScore; }
+            set
+            {
+                if (this.currentScore != value)
+                {
+                    currentScore = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         private UIElement snakeFood = null;
-        private SolidColorBrush foodBrush = Brushes.Red;
+        public ObservableCollection<HighScore> HighScoreList { get; set; } = new();
 
         public MainWindow()
         {
+            this.DataContext = this;
             InitializeComponent();
             gameTickTimer.Tick += GameTickTime_Tick;
+            LoadHighScoreList();
         }
 
         private void Window_ContentRendered(object sender, EventArgs e)
@@ -92,6 +126,103 @@ namespace SnakeWPF
             if (snakeDirection != originalSnakeDirection)
             {
                 MoveSnake();
+            }
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void btnShowHighscoreList_Click(object sender, RoutedEventArgs e)
+        {
+            bdrWelcomeMessage.Visibility = Visibility.Collapsed;
+            bdrHighScoreList.Visibility = Visibility.Visible;
+        }
+
+        private void btnAddToHighscoreList_Click(object sender, RoutedEventArgs e)
+        {
+            /*
+            int newIndex = 0;
+            // Where should the new entry be inserted?
+            if ((this.HighScoreList.Count > 0) && (currentScore < this.HighscoreList.Max(x => x.Score)))
+            {
+                SnakeHighscore justAbove = this.HighscoreList.OrderByDescending(x => x.Score).First(x => x.Score >= currentScore);
+                if (justAbove != null)
+                    newIndex = this.HighscoreList.IndexOf(justAbove) + 1;
+            }
+            // Create & insert the new entry
+            this.HighscoreList.Insert(newIndex, new SnakeHighscore()
+            {
+                PlayerName = txtPlayerName.Text,
+                Score = currentScore
+            });
+            // Make sure that the amount of entries does not exceed the maximum
+            while (this.HighscoreList.Count > MaxHighscoreListEntryCount)
+                this.HighscoreList.RemoveAt(MaxHighscoreListEntryCount);
+            */
+            if (HighScoreList.Count == 0)
+                HighScoreList.Insert(0, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
+            else
+            {
+                int ind = HighScoreList.Select((hs, index) => new { hs, index }).First(x => CurrentScore >= x.hs.Score).index;
+                for (int i = ind; i < HighScoreList.Count; i++)
+                {
+                    if (HighScoreList[i].Score == CurrentScore)
+                        continue;
+                    else
+                        HighScoreList.Insert(i, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
+                }
+                if (HighScoreList.Count > MaxHighScoreListEntryCount)
+                    HighScoreList.RemoveAt(HighScoreList.Count - 1);
+            }
+            /*
+            else
+            {
+                for (int i = 0; i < HighScoreList.Count; i++)
+                {
+                    if (CurrentScore > HighScoreList[i].Score || (CurrentScore == HighScoreList[i].Score && HighScoreList.Count < MaxHighScoreListEntryCount))
+                    {
+                        HighScoreList.Insert(i, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
+                        if (HighScoreList.Count > MaxHighScoreListEntryCount)
+                            HighScoreList.RemoveAt(HighScoreList.Count - 1);
+                        break;
+                    }
+                }
+            }
+            */
+            SaveHighScoreList();
+
+            bdrNewHighscore.Visibility = Visibility.Collapsed;
+            bdrHighScoreList.Visibility = Visibility.Visible;
+        }
+
+        private void LoadHighScoreList()
+        {
+            if (File.Exists("highscorelist.xml"))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(List<HighScore>));
+                using (Stream reader = new FileStream("highscorelist.xml", FileMode.Open))
+                {
+                    List<HighScore> tempList = (List<HighScore>)serializer.Deserialize(reader);
+                    this.HighScoreList.Clear();
+                    foreach (var item in tempList.OrderByDescending(x => x.Score))
+                        this.HighScoreList.Add(item);
+                }
+            }
+        }
+
+        private void SaveHighScoreList()
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<HighScore>));
+            using (Stream writer = new FileStream("highscorelist.xml", FileMode.Create))
+            {
+                serializer.Serialize(writer, this.HighScoreList);
             }
         }
 
@@ -166,9 +297,10 @@ namespace SnakeWPF
                 snakePart.IsHead = false;
             }
 
-            SnakePart snakeHead = snakeParts[snakeParts.Count - 1];
+            SnakePart snakeHead = snakeParts.Last();
             double nextX = snakeHead.Position.X;
             double nextY = snakeHead.Position.Y;
+
             switch (snakeDirection)
             {
                 case SnakeDirection.Left:
@@ -193,10 +325,22 @@ namespace SnakeWPF
                 Position = new Point(nextX, nextY),
                 IsHead = true
             });
-            //... and then have it drawn!
+
             DrawSnake();
-            // We'll get to this later...
-            //DoCollisionCheck();
+            DoCollisionCheck();
+        }
+
+        private void DoCollisionCheck()
+        {
+            SnakePart snakeHead = snakeParts.Last();
+            double snakeHeadX = snakeHead.Position.X;
+            double snakeHeadY = snakeHead.Position.Y;
+
+            double snakeFoodX = Canvas.GetLeft(snakeFood);
+            double snakeFoodY = Canvas.GetTop(snakeFood);
+            if (snakeHeadX == snakeFoodX && snakeHeadY == snakeFoodY) EatSnakeFood();
+            else if (snakeHeadX >= GameArea.ActualWidth || snakeHeadY >= GameArea.ActualHeight || snakeHeadY < 0 || snakeHeadX < 0) EndGame();
+            else if (snakeParts.Take(snakeParts.Count - 1).Any(part => part.Position.X == snakeHeadX && part.Position.Y == snakeHeadY)) EndGame();
         }
 
         private Point GetNextFoodPosition()
@@ -231,8 +375,42 @@ namespace SnakeWPF
             Canvas.SetLeft(snakeFood, foodPosition.X);
         }
 
+        private void EatSnakeFood()
+        {
+            speechSynthesizer.SpeakAsync("yummy");
+            snakeLength++;
+            CurrentScore++;
+            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)gameTickTimer.Interval.TotalMilliseconds - (CurrentScore * 2));
+            gameTickTimer.Interval = TimeSpan.FromMilliseconds(timerInterval);
+            GameArea.Children.Remove(snakeFood);
+            DrawSnakeFood();
+            UpdateGameStatus();
+        }
+
+        private void UpdateGameStatus()
+        {
+            this.tbStatusScore.Text = CurrentScore.ToString();
+            this.tbStatusSpeed.Text = gameTickTimer.Interval.TotalMilliseconds.ToString();
+        }
+
         private void StartNewGame()
         {
+            bdrWelcomeMessage.Visibility = Visibility.Collapsed;
+            bdrHighScoreList.Visibility = Visibility.Collapsed;
+            bdrEndOfGame.Visibility = Visibility.Collapsed;
+
+            foreach (SnakePart snakeBodyPart in snakeParts)
+            {
+                if (snakeBodyPart.UiElement != null)
+                    GameArea.Children.Remove(snakeBodyPart.UiElement);
+            }
+            snakeParts.Clear();
+
+            if (snakeFood != null) //Or GameArea.Children.Contains(snakeFood)
+            {
+                GameArea.Children.Remove(snakeFood);
+            }
+            CurrentScore = 0;
             snakeLength = SnakeStartLength;
             snakeDirection = SnakeDirection.Right;
             snakeParts.Add(new SnakePart() { Position = new Point(SnakeSquareSize * 5, SnakeSquareSize * 5) });
@@ -240,8 +418,24 @@ namespace SnakeWPF
 
             DrawSnake();
             DrawSnakeFood();
+            UpdateGameStatus();
 
             gameTickTimer.IsEnabled = true;
+        }
+
+        private void EndGame()
+        {
+            if (HighScoreList.Any(x => CurrentScore > x.Score) || HighScoreList.Count == 0 || HighScoreList.Count < MaxHighScoreListEntryCount)
+            {
+                bdrNewHighscore.Visibility = Visibility.Visible;
+                txtPlayerName.Focus();
+            }
+            else
+            {
+                bdrEndOfGame.Visibility = Visibility.Visible;
+            }
+            gameTickTimer.IsEnabled = false;
+            bdrEndOfGame.Visibility = Visibility.Visible;
         }
     }
 }
