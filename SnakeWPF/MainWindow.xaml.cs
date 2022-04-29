@@ -48,8 +48,6 @@ namespace SnakeWPF
         private const int SnakeSpeedThreshold = 100;
         private const int MaxHighScoreListEntryCount = 5;
 
-        private SolidColorBrush snakeBodyBrush = Brushes.Green;
-        private SolidColorBrush snakeHeadBrush = Brushes.YellowGreen;
         private SolidColorBrush foodBrush = Brushes.Red;
 
         private List<SnakePart> snakeParts = new();
@@ -78,7 +76,7 @@ namespace SnakeWPF
             this.DataContext = this;
             InitializeComponent();
             gameTickTimer.Tick += GameTickTime_Tick;
-            LoadHighScoreList();
+            Utilities.LoadList("highscorelist.xml", HighScoreList);
         }
 
         private void Window_ContentRendered(object sender, EventArgs e)
@@ -160,34 +158,10 @@ namespace SnakeWPF
             if (HighScoreList.Count > MaxHighScoreListEntryCount)
                 HighScoreList.RemoveAt(HighScoreList.Count - 1);
 
-            SaveHighScoreList();
+            Utilities.SaveList("highscorelist.xml", HighScoreList);
 
             bdrNewHighscore.Visibility = Visibility.Collapsed;
             bdrHighScoreList.Visibility = Visibility.Visible;
-        }
-
-        private void LoadHighScoreList()
-        {
-            if (File.Exists("highscorelist.xml"))
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(List<HighScore>));
-                using (Stream reader = new FileStream("highscorelist.xml", FileMode.Open))
-                {
-                    List<HighScore> tempList = (List<HighScore>)serializer.Deserialize(reader);
-                    this.HighScoreList.Clear();
-                    foreach (var item in tempList.OrderByDescending(x => x.Score))
-                        this.HighScoreList.Add(item);
-                }
-            }
-        }
-
-        private void SaveHighScoreList()
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<HighScore>));
-            using (Stream writer = new FileStream("highscorelist.xml", FileMode.Create))
-            {
-                serializer.Serialize(writer, this.HighScoreList);
-            }
         }
 
         private void DrawGameArea()
@@ -238,7 +212,7 @@ namespace SnakeWPF
                     {
                         Width = SnakeSquareSize,
                         Height = SnakeSquareSize,
-                        Fill = (snakePart.IsHead ? snakeHeadBrush : snakeBodyBrush)
+                        Fill = (snakePart.IsHead ? snakePart.snakeHeadBrush : snakePart.snakeBodyBrush)
                     };
                     GameArea.Children.Add(snakePart.UiElement);
                     Canvas.SetTop(snakePart.UiElement, snakePart.Position.Y);
@@ -257,7 +231,7 @@ namespace SnakeWPF
 
             foreach (SnakePart snakePart in snakeParts)
             {
-                ((Rectangle)snakePart.UiElement).Fill = snakeBodyBrush;
+                ((Rectangle)snakePart.UiElement).Fill = snakePart.snakeBodyBrush;
                 snakePart.IsHead = false;
             }
 
@@ -341,7 +315,6 @@ namespace SnakeWPF
 
         private void EatSnakeFood()
         {
-            speechSynthesizer.SpeakAsync("yummy");
             snakeLength++;
             CurrentScore++;
             int timerInterval = Math.Max(SnakeSpeedThreshold, (int)gameTickTimer.Interval.TotalMilliseconds - (CurrentScore * 2));
