@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 using System.Xml.Serialization;
+using SnakeWPF;
 using Ellipse = System.Windows.Shapes.Ellipse;
 using Rectangle = System.Windows.Shapes.Rectangle;
 
@@ -28,10 +29,11 @@ namespace SnakeWPF
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+
         public enum SnakeDirection
         { Left, Right, Up, Down };
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
@@ -48,19 +50,19 @@ namespace SnakeWPF
         private const int SnakeSpeedThreshold = 100;
         private const int MaxHighScoreListEntryCount = 5;
 
-        private SolidColorBrush foodBrush = Brushes.Red;
+        private readonly SolidColorBrush foodBrush = Brushes.Red;
 
-        private List<SnakePart> snakeParts = new();
+        private readonly List<SnakePart> snakeParts = new();
         private SnakeDirection snakeDirection = SnakeDirection.Right;
         private int snakeLength;
         private int currentScore;
 
         public int CurrentScore
         {
-            get { return this.currentScore; }
+            get { return currentScore; }
             set
             {
-                if (this.currentScore != value)
+                if (currentScore != value)
                 {
                     currentScore = value;
                     NotifyPropertyChanged();
@@ -68,12 +70,18 @@ namespace SnakeWPF
             }
         }
 
+        public TimeSpan TickerInterval
+        {
+            get { return gameTickTimer.Interval; }
+            set { gameTickTimer.Interval = value; NotifyPropertyChanged(); }
+        }
+
         private UIElement snakeFood = null;
         public ObservableCollection<HighScore> HighScoreList { get; set; } = new();
 
         public MainWindow()
         {
-            this.DataContext = this;
+            DataContext = this;
             InitializeComponent();
             gameTickTimer.Tick += GameTickTime_Tick;
             Utilities.LoadList("highscorelist.xml", HighScoreList);
@@ -81,7 +89,7 @@ namespace SnakeWPF
 
         private void Window_ContentRendered(object sender, EventArgs e)
         {
-            DrawGameArea();
+            //DrawGameArea();
         }
 
         private void GameTickTime_Tick(object sender, EventArgs e)
@@ -317,17 +325,10 @@ namespace SnakeWPF
         {
             snakeLength++;
             CurrentScore++;
-            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)gameTickTimer.Interval.TotalMilliseconds - (CurrentScore * 2));
-            gameTickTimer.Interval = TimeSpan.FromMilliseconds(timerInterval);
+            int timerInterval = Math.Max(SnakeSpeedThreshold, (int)TickerInterval.TotalMilliseconds - (CurrentScore * 2));
+            TickerInterval = TimeSpan.FromMilliseconds(timerInterval);
             GameArea.Children.Remove(snakeFood);
             DrawSnakeFood();
-            UpdateGameStatus();
-        }
-
-        private void UpdateGameStatus()
-        {
-            this.tbStatusScore.Text = CurrentScore.ToString();
-            this.tbStatusSpeed.Text = gameTickTimer.Interval.TotalMilliseconds.ToString();
         }
 
         private void StartNewGame()
@@ -351,11 +352,10 @@ namespace SnakeWPF
             snakeLength = SnakeStartLength;
             snakeDirection = SnakeDirection.Right;
             snakeParts.Add(new SnakePart() { Position = new Point(SnakeSquareSize * 5, SnakeSquareSize * 5) });
-            gameTickTimer.Interval = TimeSpan.FromMilliseconds(SnakeStartSpeed);
+            TickerInterval = TimeSpan.FromMilliseconds(SnakeStartSpeed);
 
             DrawSnake();
             DrawSnakeFood();
-            UpdateGameStatus();
 
             gameTickTimer.IsEnabled = true;
         }

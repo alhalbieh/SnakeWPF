@@ -15,7 +15,7 @@ namespace SnakeWPF
         {
             if (File.Exists("highscorelist.xml"))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(List<T>));
+                XmlSerializer serializer = new(typeof(List<T>));
                 using (Stream reader = new FileStream(xmlName, FileMode.Open))
                 {
                     List<T> tempList = (List<T>)serializer.Deserialize(reader);
@@ -28,7 +28,7 @@ namespace SnakeWPF
 
         public static void SaveList<T>(string xmlName, ObservableCollection<T> list)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<T>));
+            XmlSerializer serializer = new(typeof(ObservableCollection<T>));
             using (Stream writer = new FileStream(xmlName, FileMode.Create))
             {
                 serializer.Serialize(writer, list);
