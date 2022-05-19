@@ -16,12 +16,13 @@ namespace SnakeWPF
             if (File.Exists("highscorelist.xml"))
             {
                 XmlSerializer serializer = new(typeof(List<T>));
-                using (Stream reader = new FileStream(xmlName, FileMode.Open))
+                using Stream reader = new FileStream(xmlName, FileMode.Open);
+                List<T>? tempList = serializer.Deserialize(reader) as List<T>;
+                list.Clear();
+                for (int i = 0; i < tempList?.Count; i++)
                 {
-                    List<T> tempList = (List<T>)serializer.Deserialize(reader);
-                    list.Clear();
-                    foreach (var item in tempList)
-                        list.Add(item);
+                    T? item = tempList[i];
+                    list.Add(item);
                 }
             }
         }
@@ -29,10 +30,8 @@ namespace SnakeWPF
         public static void SaveList<T>(string xmlName, ObservableCollection<T> list)
         {
             XmlSerializer serializer = new(typeof(ObservableCollection<T>));
-            using (Stream writer = new FileStream(xmlName, FileMode.Create))
-            {
-                serializer.Serialize(writer, list);
-            }
+            using Stream writer = new FileStream(xmlName, FileMode.Create);
+            serializer.Serialize(writer, list);
         }
     }
 }

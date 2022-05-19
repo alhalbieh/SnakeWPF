@@ -18,7 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 using System.Xml.Serialization;
-using SnakeWPF;
+using SnakeWPF.Models;
 using Ellipse = System.Windows.Shapes.Ellipse;
 using Rectangle = System.Windows.Shapes.Rectangle;
 
@@ -42,7 +42,7 @@ namespace SnakeWPF
 
         private readonly Random random = new();
         private readonly DispatcherTimer gameTickTimer = new();
-        private SpeechSynthesizer speechSynthesizer = new();
+        //private readonly SpeechSynthesizer speechSynthesizer = new();
 
         private const int SnakeSquareSize = 20;
         private const int SnakeStartLength = 3;
@@ -76,7 +76,7 @@ namespace SnakeWPF
             set { gameTickTimer.Interval = value; NotifyPropertyChanged(); }
         }
 
-        private UIElement snakeFood = null;
+        private UIElement? snakeFood = null;
         public ObservableCollection<HighScore> HighScoreList { get; set; } = new();
 
         public MainWindow()
@@ -92,7 +92,7 @@ namespace SnakeWPF
             //DrawGameArea();
         }
 
-        private void GameTickTime_Tick(object sender, EventArgs e)
+        private void GameTickTime_Tick(object? sender, EventArgs e)
         {
             MoveSnake();
         }
@@ -140,18 +140,18 @@ namespace SnakeWPF
             this.DragMove();
         }
 
-        private void btnClose_Click(object sender, RoutedEventArgs e)
+        private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
 
-        private void btnShowHighscoreList_Click(object sender, RoutedEventArgs e)
+        private void BtnShowHighscoreList_Click(object sender, RoutedEventArgs e)
         {
             bdrWelcomeMessage.Visibility = Visibility.Collapsed;
             bdrHighScoreList.Visibility = Visibility.Visible;
         }
 
-        private void btnAddToHighscoreList_Click(object sender, RoutedEventArgs e)
+        private void BtnAddToHighscoreList_Click(object sender, RoutedEventArgs e)
         {
             var highScore = HighScoreList.Select((hs, index) => new { hs, index }).FirstOrDefault(x => CurrentScore >= x.hs.Score);
             int ind = highScore?.index ?? HighScoreList.Count;
@@ -172,7 +172,7 @@ namespace SnakeWPF
             bdrHighScoreList.Visibility = Visibility.Visible;
         }
 
-        private void DrawGameArea()
+        /*private void DrawGameArea()
         {
             bool doneDrawingBackground = false;
             int nextX = 0, nextY = 0;
@@ -208,7 +208,7 @@ namespace SnakeWPF
             }
             {
             }
-        }
+        }*/
 
         private void DrawSnake()
         {
@@ -239,7 +239,8 @@ namespace SnakeWPF
 
             foreach (SnakePart snakePart in snakeParts)
             {
-                ((Rectangle)snakePart.UiElement).Fill = snakePart.snakeBodyBrush;
+                if ((Rectangle?)snakePart.UiElement != null)
+                    ((Rectangle) snakePart.UiElement).Fill = snakePart.snakeBodyBrush;
                 snakePart.IsHead = false;
             }
 

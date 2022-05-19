@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-namespace SnakeWPF
+namespace SnakeWPF.Models
 {
-    public class CustomTimer: DispatcherTimer, INotifyPropertyChanged
+    public class CustomTimer : DispatcherTimer, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -23,7 +23,7 @@ namespace SnakeWPF
             get { return base.Interval; }
             set { base.Interval = value; NotifyPropertyChanged(); }
         }
-        
+
         public CustomTimer()
         {
 

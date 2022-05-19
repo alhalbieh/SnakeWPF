@@ -47,7 +47,7 @@
                 <TextBlock Name="tbStatusSpeed" Text="{Binding ElementName=window, Path=TickerInterval.TotalMilliseconds}" />
             </WrapPanel>
 
-            <Button Grid.Column="2" DockPanel.Dock="Right" Content="X" Background="Transparent" Foreground="White" FontWeight="Bold" FontSize="20" BorderThickness="0" Name="btnClose" Click="btnClose_Click" Padding="10,0" />
+            <Button Grid.Column="2" DockPanel.Dock="Right" Content="X" Background="Transparent" Foreground="White" FontWeight="Bold" FontSize="20" BorderThickness="0" Name="btnClose" Click="BtnClose_Click" Padding="10,0" />
         </Grid>
 
         <Border Name="Walls"  BorderBrush="IndianRed" BorderThickness="5">
@@ -65,7 +65,7 @@
                             Press SPACE to start!
                         </TextBlock>
                         <Button Margin="20" Name="btnShowHighscoreList" 
-                                Click="btnShowHighscoreList_Click" 
+                                Click="BtnShowHighscoreList_Click" 
                                 HorizontalAlignment="Center" 
                                 Padding="10,3" >
                             Show High Score List...
@@ -111,7 +111,7 @@
                             Congratulations - you made it into the SnakeWPF highscore list! Please enter your name below...
                         </TextBlock>
                         <TextBox Name="txtPlayerName" FontSize="28" FontWeight="Bold" MaxLength="8" Margin="20" HorizontalContentAlignment="Center"></TextBox>
-                        <Button Name="btnAddToHighscoreList" FontSize="16" HorizontalAlignment="Center" Click="btnAddToHighscoreList_Click" Padding="10,5">Add to highscore list</Button>
+                        <Button Name="btnAddToHighscoreList" FontSize="16" HorizontalAlignment="Center" Click="BtnAddToHighscoreList_Click" Padding="10,5">Add to highscore list</Button>
                     </StackPanel>
                 </Border>
             </Canvas>

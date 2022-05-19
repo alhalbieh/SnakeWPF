@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
-namespace SnakeWPF
+namespace SnakeWPF.Models
 {
     public class SnakePart
     {
@@ -14,7 +14,7 @@ namespace SnakeWPF
 
         public SolidColorBrush snakeHeadBrush = Brushes.YellowGreen;
 
-        public UIElement UiElement { get; set; }
+        public UIElement? UiElement { get; set; }
 
         public Point Position { get; set; }
 
