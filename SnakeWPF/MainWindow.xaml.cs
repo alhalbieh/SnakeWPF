@@ -40,8 +40,8 @@ namespace SnakeWPF
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private Random random = new();
-        private DispatcherTimer gameTickTimer = new();
+        private readonly Random random = new();
+        private readonly DispatcherTimer gameTickTimer = new();
         private SpeechSynthesizer speechSynthesizer = new();
 
         private const int SnakeSquareSize = 20;

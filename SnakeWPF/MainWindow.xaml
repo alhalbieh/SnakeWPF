@@ -64,7 +64,10 @@
                         <TextBlock FontWeight="Bold" HorizontalAlignment="Center" FontSize="24" Foreground="Maroon">
                             Press SPACE to start!
                         </TextBlock>
-                        <Button Margin="20" Name="btnShowHighscoreList" Click="btnShowHighscoreList_Click" HorizontalAlignment="Center" Padding="10,3">
+                        <Button Margin="20" Name="btnShowHighscoreList" 
+                                Click="btnShowHighscoreList_Click" 
+                                HorizontalAlignment="Center" 
+                                Padding="10,3" >
                             Show High Score List...
                         </Button>
                     </StackPanel>
