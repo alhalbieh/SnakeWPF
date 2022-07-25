@@ -6,16 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Speech.Synthesis;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Threading;
 using System.Xml.Serialization;
 using Ellipse = System.Windows.Shapes.Ellipse;
@@ -83,7 +77,7 @@ namespace SnakeWPF
 
         private void Window_ContentRendered(object sender, EventArgs e)
         {
-            DrawGameArea();
+            //DrawGameArea();
         }
 
         private void GameTickTime_Tick(object sender, EventArgs e)
@@ -147,55 +141,18 @@ namespace SnakeWPF
 
         private void btnAddToHighscoreList_Click(object sender, RoutedEventArgs e)
         {
-            /*
-            int newIndex = 0;
-            // Where should the new entry be inserted?
-            if ((this.HighScoreList.Count > 0) && (currentScore < this.HighscoreList.Max(x => x.Score)))
+
+            int ind = HighScoreList.Select((hs, index) => new { hs, index }).First(x => CurrentScore >= x.hs.Score).index;
+
+            for (int i = ind; i < HighScoreList.Count; i++)
             {
-                SnakeHighscore justAbove = this.HighscoreList.OrderByDescending(x => x.Score).First(x => x.Score >= currentScore);
-                if (justAbove != null)
-                    newIndex = this.HighscoreList.IndexOf(justAbove) + 1;
+                if (HighScoreList[i].Score == CurrentScore)
+                    continue;
+                else
+                    HighScoreList.Insert(i, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
             }
-            // Create & insert the new entry
-            this.HighscoreList.Insert(newIndex, new SnakeHighscore()
-            {
-                PlayerName = txtPlayerName.Text,
-                Score = currentScore
-            });
-            // Make sure that the amount of entries does not exceed the maximum
-            while (this.HighscoreList.Count > MaxHighscoreListEntryCount)
-                this.HighscoreList.RemoveAt(MaxHighscoreListEntryCount);
-            */
-            if (HighScoreList.Count == 0)
-                HighScoreList.Insert(0, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
-            else
-            {
-                int ind = HighScoreList.Select((hs, index) => new { hs, index }).First(x => CurrentScore >= x.hs.Score).index;
-                for (int i = ind; i < HighScoreList.Count; i++)
-                {
-                    if (HighScoreList[i].Score == CurrentScore)
-                        continue;
-                    else
-                        HighScoreList.Insert(i, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
-                }
-                if (HighScoreList.Count > MaxHighScoreListEntryCount)
-                    HighScoreList.RemoveAt(HighScoreList.Count - 1);
-            }
-            /*
-            else
-            {
-                for (int i = 0; i < HighScoreList.Count; i++)
-                {
-                    if (CurrentScore > HighScoreList[i].Score || (CurrentScore == HighScoreList[i].Score && HighScoreList.Count < MaxHighScoreListEntryCount))
-                    {
-                        HighScoreList.Insert(i, new HighScore() { Name = txtPlayerName.Text, Score = CurrentScore });
-                        if (HighScoreList.Count > MaxHighScoreListEntryCount)
-                            HighScoreList.RemoveAt(HighScoreList.Count - 1);
-                        break;
-                    }
-                }
-            }
-            */
+            if (HighScoreList.Count > MaxHighScoreListEntryCount)
+                HighScoreList.RemoveAt(HighScoreList.Count - 1);
             SaveHighScoreList();
 
             bdrNewHighscore.Visibility = Visibility.Collapsed;
