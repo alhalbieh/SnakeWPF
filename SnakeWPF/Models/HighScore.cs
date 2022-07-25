@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SnakeWPF
+namespace SnakeWPF.Models
 {
     public class HighScore
     {

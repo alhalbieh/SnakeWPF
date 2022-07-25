@@ -4,14 +4,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SnakeWPF" xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:local="clr-namespace:SnakeWPF"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Title="SnakeWPF - Score: 0" SizeToContent="WidthAndHeight"
         ContentRendered="Window_ContentRendered" KeyUp="Window_KeyUp"
         ResizeMode="NoResize" WindowStyle="None" Background="Black" MouseDown="Window_MouseDown">
 
     <Window.Resources>
-        <CollectionViewSource Source="{Binding ElementName=window, Path=HighScoreList}" x:Key="HighScoreListViewSource">
+        <CollectionViewSource Source="{Binding Path=HighScoreList}" x:Key="HighScoreListViewSource">
             <CollectionViewSource.SortDescriptions>
                 <!-- <scm:SortDescription Direction="Ascending" PropertyName="Score" /> -->
             </CollectionViewSource.SortDescriptions>
@@ -37,18 +39,18 @@
 
             <WrapPanel Margin="10,0,0,0">
                 <TextBlock Text="Score:" />
-                <TextBlock Name="tbStatusScore" Text="0" />
+                <TextBlock Name="tbStatusScore" Text="{Binding CurrentScore}"/>
             </WrapPanel>
 
             <WrapPanel Grid.Column="1">
                 <TextBlock Text="Speed:" />
-                <TextBlock Name="tbStatusSpeed" Text="0" />
+                <TextBlock Name="tbStatusSpeed" Text="{Binding ElementName=window, Path=TickerInterval.TotalMilliseconds}" />
             </WrapPanel>
 
-            <Button Grid.Column="2" DockPanel.Dock="Right" Content="X" Background="Transparent" Foreground="White" FontWeight="Bold" FontSize="20" BorderThickness="0" Name="btnClose" Click="btnClose_Click" Padding="10,0" />
+            <Button Grid.Column="2" DockPanel.Dock="Right" Content="X" Background="Transparent" Foreground="White" FontWeight="Bold" FontSize="20" BorderThickness="0" Name="btnClose" Click="BtnClose_Click" Padding="10,0" />
         </Grid>
 
-        <Border Name="Walls"  BorderBrush="Black" BorderThickness="5">
+        <Border Name="Walls"  BorderBrush="IndianRed" BorderThickness="5">
             <Canvas x:Name="GameArea" ClipToBounds="True" Width="400" Height="400">
                 <Border BorderBrush="Silver" Name="bdrWelcomeMessage" BorderThickness="2" Visibility="Visible"
                         Width="300" Height="300" Canvas.Left="50" Canvas.Top="48"  Panel.ZIndex="1">
@@ -62,7 +64,10 @@
                         <TextBlock FontWeight="Bold" HorizontalAlignment="Center" FontSize="24" Foreground="Maroon">
                             Press SPACE to start!
                         </TextBlock>
-                        <Button Margin="20" Name="btnShowHighscoreList" Click="btnShowHighscoreList_Click" HorizontalAlignment="Center" Padding="10,3">
+                        <Button Margin="20" Name="btnShowHighscoreList" 
+                                Click="BtnShowHighscoreList_Click" 
+                                HorizontalAlignment="Center" 
+                                Padding="10,3" >
                             Show High Score List...
                         </Button>
                     </StackPanel>
@@ -106,7 +111,7 @@
                             Congratulations - you made it into the SnakeWPF highscore list! Please enter your name below...
                         </TextBlock>
                         <TextBox Name="txtPlayerName" FontSize="28" FontWeight="Bold" MaxLength="8" Margin="20" HorizontalContentAlignment="Center"></TextBox>
-                        <Button Name="btnAddToHighscoreList" FontSize="16" HorizontalAlignment="Center" Click="btnAddToHighscoreList_Click" Padding="10,5">Add to highscore list</Button>
+                        <Button Name="btnAddToHighscoreList" FontSize="16" HorizontalAlignment="Center" Click="BtnAddToHighscoreList_Click" Padding="10,5">Add to highscore list</Button>
                     </StackPanel>
                 </Border>
             </Canvas>
